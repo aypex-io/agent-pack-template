@@ -16,8 +16,8 @@ fails when the code it covers is removed or broken.
 
 ## When things go wrong
 
-<!-- FILL: what must happen off the expected path. In the pilot, most defects a
-     code review found were here, and a passing test run can't show them.
+<!-- FILL: what must happen off the expected path. Most defects a
+     code review finds are here, and a passing test run cannot show them.
      Answer each question that applies, and add a criterion above for each answer:
      - Repeats: a job or request runs twice (retries, redelivery, double submit).
      - Overlap: two requests or jobs change the same record at once.

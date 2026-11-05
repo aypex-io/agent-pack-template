@@ -1,9 +1,9 @@
-# Where and how the agent works. Validated against agent-run/v2 target.schema.json.
+# Where and how the agent works. Every field is in the field table of the agent-pack-template README.
 contract: agent-run/v2
 customer: FILL-customer-slug        # e.g. acme
 repo: FILL-owner/FILL-repo          # e.g. acme-co/portal
 base: main
-runner: claude-code                 # any runner image that meets the contract
+runner: claude-code                 # a runner your operator provides
 model: claude-opus-5-5              # provider-specific; the runner checks it
 
 stages: [implement, review]         # verify always runs after implement and review

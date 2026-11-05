@@ -28,34 +28,53 @@ in a pack.
 
 ## Lifecycle
 
-1. **Install the App** on your GitHub org. Select your packs repo, your docs
-   repo and the target repos. The App can only see what you select.
+1. **Install the App** on your GitHub org. Your operator sends you the install
+   link, so don't start from the App's page before onboarding. Select your
+   packs repo, your docs repo and the target repos. The App can only see what
+   you select. A repo left out shows up like this:
+   - the packs repo: no `pack-ready` check ever appears;
+   - a target repo: the run fails after the merge, with a failure comment on the
+     PR;
+   - the docs repo: a pack that pins `docs` fails `pack-ready`, with a line
+     saying the App can't read the docs repo.
 2. **Make your packs repo** from this template. Its default branch must be
    `main`. Packs go in `packs/<customer>/<slug>/`.
 3. **Create the operators team** named at onboarding.
-4. **Add a ruleset on `main`** that requires:
-   - the `pack-ready` check, from the App (integration ID `5571914`);
-   - your own approvals (for example one reviewer, and dismiss approvals when
-     new commits are pushed);
-   - merge commits only. Turn off squash and rebase merging.
+4. **Add a ruleset on `main`** (Settings, Rules, Rulesets) with these rules:
+   - "Require a pull request before merging", for your own approvals (for
+     example one reviewer, and dismiss approvals when new commits are pushed);
+   - "Require status checks to pass", with the check `pack-ready` and its source
+     set to the App (`aypex-agent-runs`, integration ID `5571914`);
+   - merge commits as the only allowed merge method. Turn off squash and
+     rebase.
 
-   Merging is the approval, so the ruleset decides who may start a run.
+   Leave the bypass list empty. Without the required check, a pack that fails
+   can still be merged, and merging starts the run. Rulesets on private repos
+   need GitHub Pro, Team or Enterprise. Merging is the approval, so the ruleset
+   decides who may start a run.
 5. **Branch** `pack/<customer>/<slug>`, for example `pack/acme/export-csv`. The
-   branch must be in this repo, not a fork.
+   branch must be in this repo, not a fork. `<customer>` is your customer slug
+   (see the `customer` field below). `<slug>` is lowercase letters, digits and
+   `-`. A branch with any other slug starts nothing when it is merged.
 6. **Write the five files.** Copy `template/` to `packs/<customer>/<slug>/` and
    fill in `goal.md`, `spec.md`, `AGENTS.md`, `target.yaml` and `plan.md`. See
    "The five files" and "Writing the plan".
 7. **Open a PR** into `main`. Fix what `pack-ready` reports until it passes.
    Reviewers may push edits to any file in the pack, `plan.md` included.
-8. **Merge with a merge commit**, as a person, and keep the branch. **That starts
-   the run.** Status arrives as comments on the merged PR, ending with a link to
-   the agent's PR on your target repo. If nothing appears, see "When a merge
-   posts nothing".
+8. **Merge with a merge commit**, as a person. **That starts the run.** Status
+   arrives as a comment on the merged PR with a link to the agent's PR and a
+   cost table. The agent's PR on your target repo is opened by the App and holds
+   a summary, the agent's review, the cost table and a note that the platform
+   re-ran the tests. If nothing appears, see "When a merge posts nothing".
 9. **Re-run or revise.** Label the merged pack PR `force:agent-run` to re-run it
    from scratch: a new agent branch and a new agent PR. Label an agent PR
-   `agent-revise` to have the agent address its review feedback. Only active
-   members of the operators team can apply either label. To change what was
-   asked for, write a new pack. A merged pack never changes.
+   `agent-revise` to have the agent address its review feedback: the PR must be
+   open and have review feedback left since the agent's last commit, or the run
+   fails and says so. Anyone with triage rights can apply either label, but only
+   active members of the operators team get a run. A `force:agent-run` from
+   anyone else is removed, with a comment saying so. An `agent-revise` from
+   anyone else fails, with a comment. To change what was asked for, write a new
+   pack. A merged pack never changes.
 
 The agent never writes to your packs repo.
 
@@ -102,23 +121,23 @@ No field may be added that the table doesn't list.
 
 | Field | Required | What it does, and its limits |
 |---|---|---|
-| `contract` | yes | Must be `agent-run/v2`. (`agent-run/v1` is retired.) |
+| `contract` | yes | Must be `agent-run/v2`. |
 | `customer` | yes | Your customer slug: lowercase letters, digits and `-`, 3 to 32 characters, starting with a letter and not ending in `-`. It must equal the `<customer>` folder the pack sits in. |
 | `repo` | yes | The repo the agent changes, as `owner/name`. It must be one of your target repos, in your org. It can't be your packs repo or your docs repo. |
 | `base` | yes | The branch the agent's branch is cut from, and the branch its PR targets. |
-| `runner` | yes | The runner image, such as `claude-code`: lowercase letters, digits and `-`. |
-| `model` | yes | The model ID, in your model provider's own naming. The runner checks it. |
-| `stages` | yes | The agent stages, in order: `implement` and/or `review`. `implement` must be in the list, and nothing repeats. `verify` always runs after them. |
+| `runner` | yes | The runner image, such as `claude-code`: lowercase letters, digits and `-`. The runner images your setup offers are settled at onboarding. |
+| `model` | yes | The model ID, in your model provider's own naming. The runner checks it. The models your setup offers are settled at onboarding. |
+| `stages` | yes | The agent stages, in order: `[implement]` or `[implement, review]`. `[review]` alone is invalid; nothing repeats. `verify` always runs after them. |
 | `permissions.allow` | yes | What the agent may do; at least one entry. Anything not listed is denied. `read` reads files. `edit` changes files. `web` allows web search and fetch. `ci` allows changes under `.github/workflows/` and `.github/actions/`; without it, a run that changes those paths fails before anything is pushed. `bash:<pattern>` allows shell commands matching the glob, such as `bash:npm test` or `bash:git *`. A command that starts with a variable assignment (`FOO=1 npm test`) doesn't match a pattern, so set variables in `env`. |
 | `permissions.deny_paths` | no | Globs, relative to the repo root, that the agent can't read or write even when `read` and `edit` are allowed, such as `.env*`. |
 | `verify` | yes | A shell command the platform runs in a clean container against the agent's commits. It must exit 0 before a PR is opened. The agent's own claim that tests pass isn't trusted. |
-| `env` | no | Variables set for the agent's tools and for `verify`, such as `RAILS_ENV: test`. Names are capital letters, digits and `_`; values are strings or integers. The names the platform sets are refused: `PATH`, `HOME`, `SHELL`, `TMPDIR`, `BASH_ENV`, `ENV`, `NODE_OPTIONS`, `DISABLE_AUTOUPDATER`, the variables the backing services set (see `services`), and any name starting `AGENT_`, `MODEL_`, `ANTHROPIC_`, `CLAUDE_`, `GIT_` or `LD_`. |
+| `env` | no | Variables set for the agent's tools and for `verify`, such as `RAILS_ENV: test`. Names start with a capital letter and hold only capital letters, digits and `_` (`^[A-Z][A-Z0-9_]*$`); values are strings or integers. The names the platform sets are refused: `PATH`, `HOME`, `SHELL`, `TMPDIR`, `BASH_ENV`, `ENV`, `NODE_OPTIONS`, `DISABLE_AUTOUPDATER`, the variables the platform sets for `services` (listed there), and any name starting `AGENT_`, `MODEL_`, `ANTHROPIC_`, `CLAUDE_`, `GIT_` or `LD_`. |
 | `budget.max_turns` | yes | Most turns the agent may take: a whole number from 1 to 2000. |
 | `budget.deadline` | yes | Wall-clock limit for the whole run, a whole number then `m` or `h`: `90m`, `3h`. |
 | `budget.usd_cap` | yes | Spending cap in US dollars; above 0. |
 | `egress` | no | Extra hosts the agent's tools may reach, such as package registries: lowercase letters, digits, `.` and `-`. Each must be on the list agreed at onboarding. |
 | `toolchain` | no | What the agent and `verify` run on: `node` (the default, Node 22) or `ruby` (Ruby 4.0.1, with Node alongside). |
-| `services` | no | Backing services started for the whole run and reachable from the agent's tools and `verify`. `postgres` is PostgreSQL 18.6, empty at the start of the run, at `DATABASE_HOST` / `PGHOST`. Ask your operator which others exist. |
+| `services` | no | Backing services started for the whole run and reachable from the agent's tools and `verify`. `postgres` is PostgreSQL 18.6, empty at the start of the run, at `DATABASE_HOST` / `PGHOST`. The platform sets `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `PGHOST`, `PGPORT`, `PGUSER` and `PGPASSWORD`, so tests can connect, and a pack's `env` can't set them. It doesn't set `DATABASE_URL`. The user can create databases. Ask your operator which others exist. |
 | `docs` | no | Company docs pinned for this run, readable at `/docs`. See below. |
 
 ### `docs`
@@ -136,7 +155,7 @@ Both keys are required if `docs` is there. The agent reads the files at
   branch** of your docs repo. The docs repo isn't named in the pack: it is the
   one agreed at onboarding, and your customer must have one.
 - `paths` is a list of at least one path or glob inside the docs repo.
-  Paths are relative: no leading `/`, no empty segment, no `..`. `*` and `?`
+  Paths are relative: no leading `/`, no empty segment, no `..`. Use only letters, digits, `_`, `.`, `-`, `/`, `*` and `?`. A path can't start with `.` or `-`, and can't hold spaces or `[ ]`. `*` and `?`
   stay within one folder, so `style/*.md` is one level. `**` crosses folders, so
   `style/**/*.md` is the whole tree. Every entry must match at least one file.
 - Only regular files count. Symlinks and submodules don't match.
@@ -204,33 +223,28 @@ would a design.
 
 ## When a merge posts nothing
 
-A merge starts a run only when all of these hold:
+Some merges start nothing and post nothing, because the event is dropped before
+a run begins:
 
-- the PR was merged, from its `pack/<customer>/<slug>` branch in the packs
-  repo;
-- it was merged **with a merge commit**, not squashed or rebased;
-- it was merged into the repo's **default branch**;
-- the person who merged it has a plain GitHub login.
+- the PR isn't from a `pack/<customer>/<slug>` branch in your packs repo (a fork
+  included), or `<customer>` isn't a customer registered for this repo;
+- the PR wasn't merged into `main`;
+- **the person who merged has a bot login** (a GitHub App, whose login ends in
+  `[bot]`) **or a login with an underscore**, as GitHub Enterprise Managed Users
+  have (`name_acme`). The run starts nothing and posts nothing. This is a known
+  limit. Merge as a person with an ordinary login. The same goes for a
+  `force:agent-run` or `agent-revise` label.
 
-A pack that fails any of the first three is refused with a comment on the PR.
-Write a new pack if the old one can't be fixed.
+Other merges start a run that is refused, with a comment on the PR saying why:
 
-Two cases start nothing at all:
+- the merge wasn't a merge commit (squash or rebase);
+- the merge changed more than the one new pack folder, or the pack no longer
+  passes the check;
+- a problem with the target repo, the egress hosts or the `docs` pin.
 
-- **A merge (or a label) by a GitHub App**, whose login ends in `[bot]`. The
-  run needs a person. This is a known limit. Merge as a person.
-- **A login with an underscore**, which is what GitHub Enterprise Managed Users
-  have (`name_acme`). The platform doesn't accept these logins, so a merge or
-  label by one starts nothing. This is a known limit. Have a person with an
-  ordinary login merge or label.
-
-If the cluster is down when you merge, the event is lost. Wait a few minutes. If
-no status comment has appeared, ask your operator to re-run the merged pack: the
-`force:agent-run` label does it, applied by a member of the operators team.
-
-A merge for a customer the platform doesn't serve does nothing and posts
-nothing. `pack-ready` checks this before the merge, so it should have failed the
-PR first.
+If the cluster is down when you merge, the event may be lost. Wait a few
+minutes. If no status comment has appeared and none of the above fits, ask your
+operator to re-run the merged pack with the `force:agent-run` label.
 
 ## Re-running
 
