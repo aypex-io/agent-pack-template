@@ -1,0 +1,37 @@
+# Where and how the agent works. Validated against agent-run/v2 target.schema.json.
+contract: agent-run/v2
+customer: FILL-customer-slug        # e.g. acme
+repo: FILL-owner/FILL-repo          # e.g. acme-co/portal
+base: main
+runner: claude-code                 # any runner image that meets the contract
+model: claude-opus-5-5              # provider-specific; the runner checks it
+
+stages: [implement, review]         # verify always runs after implement and review
+
+permissions:
+  allow:
+    - read
+    - edit
+    - "bash:git *"
+    - "bash:FILL-test-command"      # e.g. "bash:bin/rails test", "bash:npm test"
+  deny_paths:
+    - ".env*"
+    - "config/credentials/**"
+
+verify: FILL-verify-command         # e.g. "bin/rails test", "npm ci && npm test"
+
+# Variables for the agent's tools and verify, e.g. { RAILS_ENV: test, PARALLEL_WORKERS: 2 }.
+# Put them here, not in front of commands: "PARALLEL_WORKERS=2 bin/rails test" doesn't
+# match "bash:bin/rails *", so the agent can't run it.
+env: {}
+
+budget:
+  max_turns: 200
+  deadline: 3h
+  usd_cap: 40
+
+egress: []                          # extra registries, e.g. [rubygems.org, registry.npmjs.org]
+
+# docs:                               # optional: company docs, read-only at /docs
+#   ref: <docs commit sha>            # 40 hex: a commit on the docs repo's default branch
+#   paths: [<path>, "<dir>/*.md"]
