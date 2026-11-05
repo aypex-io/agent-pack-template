@@ -48,7 +48,8 @@ in a pack.
    - merge commits as the only allowed merge method. Turn off squash and
      rebase.
 
-   Leave the bypass list empty. Without the required check, a pack that fails
+   Set its enforcement status to Active, and leave the bypass list empty. Without
+   the required check, a pack that fails
    can still be merged, and merging starts the run. Rulesets on private repos
    need GitHub Pro, Team or Enterprise. Merging is the approval, so the ruleset
    decides who may start a run.
