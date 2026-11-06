@@ -39,8 +39,14 @@ in a pack.
      saying the App can't read the docs repo.
 2. **Make your packs repo** from this template. Its default branch must be
    `main`. Packs go in `packs/<customer>/<slug>/`.
-3. **Create the operators team** named at onboarding.
-4. **Add a ruleset on `main`** (Settings, Rules, Rulesets) with these rules:
+3. **Create the operators team** named at onboarding, and two labels:
+   `force:agent-run` on your packs repo, and `agent-revise` on each target repo.
+   A label that doesn't exist can't be applied.
+4. **Add a ruleset on `main`** (Settings, Rules, Rulesets), once your operator
+   says your side of the cluster is ready. GitHub may not offer the App as the
+   check's source until the check has run, so if it doesn't, open any PR first
+   and wait for `pack-ready` to appear on it, within about 10 minutes. Add these
+   rules:
    - "Require a pull request before merging", for your own approvals (for
      example one reviewer, and dismiss approvals when new commits are pushed);
    - "Require status checks to pass", with the check `pack-ready` and its source
