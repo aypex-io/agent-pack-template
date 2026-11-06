@@ -10,8 +10,9 @@ pull request with the result. A GitHub App named `aypex-agent-runs` does the
 GitHub side: it checks packs, starts runs and posts status as comments. This
 template is published by Aypex (`aypex-io`).
 
-This repo holds `template/`, the empty pack to copy, and this guide. Make your
-own packs repo from it and replace this README with your own notes.
+This repo holds `template/`, the empty pack to copy, and this guide to writing
+packs. **Setting up for the first time? Start with [INSTALL.md](INSTALL.md).**
+Make your own packs repo from it and replace this README with your own notes.
 
 ## Before you start
 
