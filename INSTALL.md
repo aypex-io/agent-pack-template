@@ -8,7 +8,7 @@ A GitHub App, [`aypex-agent-runs`](https://github.com/apps/aypex-agent-runs), do
 GitHub side. Installing the App isn't enough on its own: nothing runs until Aypex
 has registered your organization.
 
-Setup takes about an hour of your time, plus waiting for Aypex in step 5.
+Setup takes about an hour of your time, plus waiting for Aypex in step 6.
 
 ## Before you start
 
@@ -22,6 +22,7 @@ You need:
   start a run for a login with an underscore, and Enterprise Managed Users all have
   one (`name_acme`). A merge by one of those starts nothing and posts nothing. If your
   organization uses Enterprise Managed Users, tell Aypex before you go further.
+- **An Anthropic account you can create API keys in.** Step 5 covers the key.
 
 ## Step 1: Agree the details with Aypex
 
@@ -35,7 +36,7 @@ Aypex registers these for you, so settle them first.
 | Docs repo (optional) | `acme-co/handbook` | Company docs a pack can pin for the agent to read. |
 | Operators team | `acme-co/agent-operators` | The people who may re-run a pack or ask for a revision. |
 | Network hosts | `registry.npmjs.org` | What the agent's tools may reach, such as package registries. |
-| Runner and model | `claude-code`, `claude-opus-5-5` | Which are available to you, and how model use is billed. |
+| Runner and model | `claude-code`, `claude-opus-5-5` | Which are available to you. Model use is billed to your own provider account (step 5). |
 
 ## Step 2: Make your packs repo
 
@@ -95,9 +96,32 @@ gh label create force:agent-run -R acme-co/packs
 gh label create agent-revise -R acme-co/portal   # once for each target repo
 ```
 
-## Step 5: Wait for Aypex to register you
+## Step 5: Send Aypex your model API key
 
-Tell Aypex that steps 2 to 4 are done. Aypex adds your organization to its registry and
+Runs use your own key, so model use goes straight on your bill with your provider. Claude
+models are what's supported today, so this is an Anthropic API key.
+
+1. **Make a key just for this.** In your Anthropic Console, create a workspace for Agent
+   Runs, give it a spend limit, and create a key in it. A key of its own with a limit keeps
+   any problem small, and you can revoke it without touching anything else.
+2. **Encrypt it to Aypex's public key.** Install [age](https://age-encryption.org), then run:
+
+   ```bash
+   age -r AGE_PUBLIC_KEY -o model-key.age
+   ```
+
+   It waits for input and shows nothing. Paste the key, press Enter, then press Ctrl-D.
+   This keeps the key out of your shell history.
+3. **Send Aypex `model-key.age`,** by any route you like. Only Aypex can decrypt it. Delete
+   your copy once Aypex confirms it arrived.
+
+**To replace the key,** make a new one, send it the same way, and revoke the old one once
+Aypex confirms. **To cut off access at any time,** revoke the key in your Anthropic Console.
+Runs then stop with a message saying the key was rejected.
+
+## Step 6: Wait for Aypex to register you
+
+Tell Aypex that steps 2 to 5 are done. Aypex adds your organization to its registry and
 tells you when your side is ready.
 
 Until then, the App ignores you. Merges and labels start nothing and post nothing, and
@@ -107,7 +131,7 @@ that's expected.
 about 10 minutes it should have a `pack-ready` check reading **Ready: no pack changed**.
 Close the PR afterwards.
 
-## Step 6: Protect your packs repo
+## Step 7: Protect your packs repo
 
 **Merging a pack starts a run,** so this ruleset decides who can start one. Without it,
 a pack that fails its check can still be merged.
@@ -122,7 +146,7 @@ on `main`:
   after the fact, with a comment on the PR.
 - **Require status checks to pass:** add `pack-ready`, with its source set to the
   `aypex-agent-runs` App (integration ID `5571914`). GitHub may not offer the App until
-  the check has run, which is why this comes after step 5.
+  the check has run, which is why this comes after step 6.
 
 **Check it:**
 
@@ -133,7 +157,7 @@ gh api repos/acme-co/packs/rules/branches/main
 You should see a `required_status_checks` rule with `integration_id` `5571914`, and a
 `pull_request` rule with `allowed_merge_methods` of `["merge"]`.
 
-## Step 7: Run your first pack
+## Step 8: Run your first pack
 
 Start with something small, so you can see the whole path.
 
@@ -209,6 +233,10 @@ refused.
 | **Re-run all checks** does nothing | It isn't handled. Use **Re-run** on the `pack-ready` check itself. |
 | A label does nothing | `force:agent-run` only works on a merged PR. A label already on a PR does nothing: remove it and add it again. |
 | A PR from a fork fails | Packs must come from a branch in your packs repo. |
+| A run stops: your API key was rejected | The key was revoked or isn't valid. Send a new one (step 5), then re-run the pack with `force:agent-run`. |
+| A run stops: the model provider refused this request | Often the key's workspace can't use that model. Check the workspace's settings, then re-run the pack. |
+| A run stops: out of credit | Your provider account or workspace has hit its balance or spend limit. Raise it, then re-run the pack. |
+| A run stops: rate-limited, or the provider was unavailable | Nothing is wrong on your side. Re-run the pack later, or raise your limit with the provider. |
 
 ## What the agent can reach
 
@@ -220,6 +248,10 @@ refused.
 - **The network:** the agent connects only to the model's API and the hosts you agreed in
   step 1. DNS lookups aren't restricted, and package hosts can share addresses with other
   sites on the same CDN.
+- **Your API key:** Aypex stores it in 1Password and in your namespace on the cluster. During
+  a run a small proxy in its own sandbox holds it, and the agent has only a placeholder, so
+  nothing the agent runs can read the key or send it anywhere. The agent can still spend
+  through the proxy while a run is going, up to the pack's budget and your spend limit.
 - **Isolation:** each run works in sandboxed containers, and each customer has its own
   namespace on the cluster.
 - **Workflows:** the agent can't change `.github/workflows/`.
