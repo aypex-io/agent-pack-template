@@ -107,7 +107,7 @@ models are what's supported today, so this is an Anthropic API key.
 2. **Encrypt it to Aypex's public key.** Install [age](https://age-encryption.org), then run:
 
    ```bash
-   age -r AGE_PUBLIC_KEY -o model-key.age
+   age -r age1qw7cps5np4j25aftjxhehxp6y2azqen8s7qrg0n7q0aaeataf3zqwk44fn -o model-key.age
    ```
 
    It waits for input and shows nothing. Paste the key, press Enter, then press Ctrl-D.
