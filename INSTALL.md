@@ -168,7 +168,9 @@ cp -R template packs/acme/first-pack
 ```
 
 The branch must be `pack/<customer>/<slug>`, and the folder must match it. Fill in the
-five files, removing every `FILL` marker:
+five files, removing every `FILL` marker. Your coding agent can write them with you, using
+the `write-pack` skill in `.agents/skills/write-pack/` (in Claude Code, `/write-pack`). To
+update it later, replace that folder with the newest one from `aypex-io/agent-pack-template`.
 
 | File | What it says |
 |---|---|
@@ -196,6 +198,9 @@ env: {}
 budget: { max_turns: 60, deadline: 60m, usd_cap: 5 }
 egress: [registry.npmjs.org]
 ```
+
+If this is the first pack for this repo, ask Aypex to test its `verify` command in the
+cluster before you merge. The test uses no model and writes nothing to GitHub.
 
 Then:
 

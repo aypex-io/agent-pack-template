@@ -66,7 +66,8 @@ in a pack.
    `-`. A branch with any other slug starts nothing when it is merged.
 6. **Write the five files.** Copy `template/` to `packs/<customer>/<slug>/` and
    fill in `goal.md`, `spec.md`, `AGENTS.md`, `target.yaml` and `plan.md`. See
-   "The five files" and "Writing the plan".
+   "The five files" and "Writing the plan". The `write-pack` skill writes them
+   with your coding agent.
 7. **Open a PR** into `main`. Fix what `pack-ready` reports until it passes.
    Reviewers may push edits to any file in the pack, `plan.md` included.
 8. **Merge with a merge commit**, as a person. **That starts the run.** Status
@@ -212,8 +213,30 @@ default branch, and on **Re-run**.
 
 ## Writing the plan
 
-Write the plan before the PR, in a local agent session that can read your target
-repo. You don't need the platform to do it.
+Write the pack, plan included, before the PR, in a local session with your
+coding agent that can read your target repo. You don't need the platform to do
+it.
+
+### With the `write-pack` skill
+
+This repo includes a skill for it, in `.agents/skills/write-pack/`. In Claude
+Code, run `/write-pack`. Agents that read skills from `.agents/skills/` find it
+there too. With any other agent, ask it to follow
+`.agents/skills/write-pack/SKILL.md`.
+
+It reads your target repo and drafts `AGENTS.md` and `target.yaml` from it. It
+asks you why the work matters, and goes through what should happen when things
+go wrong, case by case, with you deciding each one. It drafts the plan against
+the code, with a test for every acceptance criterion. Then it has a fresh agent
+read the pack the way the run will, and fixes what that reader would have to
+guess. If the work touches several repos, it splits it into one pack per repo,
+in order.
+
+Keep `.agents/` and `.claude/` when you replace this README. `.claude/skills/write-pack`
+is a link to the skill, for Claude Code. On Windows without symlinks, copy the
+folder there instead.
+
+### Without the skill
 
 1. Write `goal.md`, `spec.md`, `AGENTS.md` and `target.yaml` first.
 2. Point the session at your repo, `spec.md` and the empty `plan.md`. Ask it to
@@ -228,6 +251,14 @@ repo. You don't need the platform to do it.
 
 Merging approves the plan as written, and the agent follows it. Review it as you
 would a design.
+
+### Keeping the skill up to date
+
+Your copy doesn't update itself. `metadata.version` in its `SKILL.md` is its
+date. To update it, replace your `.agents/skills/write-pack/` with the one in
+[`aypex-io/agent-pack-template`](https://github.com/aypex-io/agent-pack-template),
+so files removed there go too. If you copied the skill into
+`.claude/skills/write-pack` instead of linking it, replace that copy as well.
 
 ## When a merge posts nothing
 
