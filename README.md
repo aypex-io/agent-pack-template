@@ -219,10 +219,11 @@ it.
 
 ### With the `write-pack` skill
 
-This repo includes a skill for it, in `.agents/skills/write-pack/`. In Claude
-Code, run `/write-pack`. Agents that read skills from `.agents/skills/` find it
-there too. With any other agent, ask it to follow
-`.agents/skills/write-pack/SKILL.md`.
+This repo includes a skill for it, in `.agents/skills/write-pack/`. Start your
+coding agent in this repo, not in a folder above it: Claude Code, for one, loads
+only the skills of the folder it starts in. In Claude Code, run `/write-pack`.
+Agents that read skills from `.agents/skills/` find it there too. With any other
+agent, ask it to follow `.agents/skills/write-pack/SKILL.md`.
 
 It reads your target repo and drafts `AGENTS.md` and `target.yaml` from it. It
 asks you why the work matters, and goes through what should happen when things

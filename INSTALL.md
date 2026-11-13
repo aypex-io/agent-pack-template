@@ -169,8 +169,9 @@ cp -R template packs/acme/first-pack
 
 The branch must be `pack/<customer>/<slug>`, and the folder must match it. Fill in the
 five files, removing every `FILL` marker. Your coding agent can write them with you, using
-the `write-pack` skill in `.agents/skills/write-pack/` (in Claude Code, `/write-pack`). To
-update it later, replace that folder with the newest one from `aypex-io/agent-pack-template`.
+the `write-pack` skill in `.agents/skills/write-pack/` (in Claude Code, `/write-pack`). Start
+the agent in your packs repo, or it won't find the skill. To update it later, replace that
+folder with the newest one from `aypex-io/agent-pack-template`.
 
 | File | What it says |
 |---|---|
