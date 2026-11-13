@@ -25,6 +25,9 @@ fails when the code it covers is removed or broken.
      - Partial failure: a call fails halfway. What state is left, and what retries?
      - Odd input: casing, blanks, separators, values that parse but mean something else.
      - Production: defaults, fakes or test engines that must never run there.
+     - Unchanged behaviour: what must keep working as it does today. Name each
+       case, because the existing tests may not cover it.
+     - Access: who may see or change what, such as tenant or permission scoping.
      Write "None" if nothing applies, and say why. -->
 
 ## Examples
