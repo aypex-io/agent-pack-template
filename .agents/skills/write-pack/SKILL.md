@@ -2,7 +2,7 @@
 name: write-pack
 description: Use when writing a pack for the Agent Run Platform, or finishing one that isn't merged yet (an open question answered, a reviewer's edits, a pack-ready failure, or an earlier pack it waited for has merged). Gets what a coding agent needs into goal.md, spec.md, plan.md, AGENTS.md and target.yaml, so the run's pull request can merge without a revision.
 metadata:
-  version: "2026-11-13"
+  version: "2026-11-19"
   source: https://github.com/aypex-io/agent-pack-template/tree/main/.agents/skills/write-pack
 ---
 

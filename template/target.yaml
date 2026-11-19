@@ -14,6 +14,7 @@ permissions:
     - edit
     - "bash:git *"
     - "bash:FILL-test-command"      # e.g. "bash:bin/rails test", "bash:npm test"
+  # Left out of the run's copy of the repo: don't deny a file your tests need.
   deny_paths:
     - ".env*"
     - "config/credentials/**"
