@@ -41,7 +41,11 @@ instead.
     only when the spec needs a CI change;
   - `web` only if the work needs the agent to search or fetch from the web.
 - **`permissions.deny_paths`**: `.env*`, plus the repo's own secret files, such
-  as `secrets/**`, `*.pem` or `*.key`.
+  as `secrets/**`. A denied file isn't in the run's copy of the repo at all, so
+  don't deny one the tests read, such as test keys or fixtures. Globs start at
+  the repo root: use `**/` for any depth, as in `**/.env*`. List the tracked
+  files each entry matches and show the person: `.env*` also matches a tracked
+  `.env.example`, which would then be missing from the run.
 - **`verify`**: what CI runs before a merge, setup included, as one shell
   command. For example `npm ci && npm test`. It runs again in a clean Linux
   container after the agent finishes, and no PR opens unless it passes.
