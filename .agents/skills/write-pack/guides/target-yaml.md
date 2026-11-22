@@ -45,7 +45,10 @@ instead.
   don't deny one the tests read, such as test keys or fixtures. Globs start at
   the repo root: use `**/` for any depth, as in `**/.env*`. List the tracked
   files each entry matches and show the person: `.env*` also matches a tracked
-  `.env.example`, which would then be missing from the run.
+  `.env.example`, which would then be missing from the run. Older versions of a
+  denied file are left out too, but `deny_paths` names paths, not content: a
+  secret once committed at another path can be read in the repo's history. Ask
+  the person whether that ever happened; if it did, the secret needs rotating.
 - **`verify`**: what CI runs before a merge, setup included, as one shell
   command. For example `npm ci && npm test`. It runs again in a clean Linux
   container after the agent finishes, and no PR opens unless it passes.
